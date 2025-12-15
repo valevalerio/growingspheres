@@ -66,18 +66,27 @@ class GrowingSpheres:
             raise ValueError("Prediction function should return a class (integer)")
 
         
-    def find_counterfactual(self):
+    def find_counterfactual(self, num_enemies=1):
         """
         Finds the decision border then perform projections to make the explanation sparse.
         """
         ennemies_ = self.exploration()
         closest_ennemy_ = sorted(ennemies_, 
-                                 key= lambda x: pairwise_distances(self.obs_to_interprete.reshape(1, -1), x.reshape(1, -1)))[0] 
-        self.e_star = closest_ennemy_
-        if self.sparse == True:
-            out = self.feature_selection(closest_ennemy_)
+                                 key= lambda x: pairwise_distances(self.obs_to_interprete.reshape(1, -1), x.reshape(1, -1)))[:num_enemies]
+        if num_enemies == 1:
+            self.e_star = closest_ennemy_[0]
+            if self.sparse == True:
+                out = self.feature_selection(closest_ennemy_[0])
+            else:
+                out = closest_ennemy_[0]
         else:
-            out = closest_ennemy_
+            self.e_star = closest_ennemy_
+            out = []
+            for enn in closest_ennemy_:
+                if self.sparse == True:
+                    out.append(self.feature_selection(enn))
+                else:
+                    out.append(enn)
         return out
     
     
